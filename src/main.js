@@ -25,6 +25,7 @@
   var setupDiceMode = 'virtual';
   var setupDiceFaces = 6;
   var error = '';
+  var APP_VERSION = 'turnos-bebidas-20260716';
 
   for (var index = 0; index < TOTAL_CELLS; index += 1) {
     var cell = index + 1;
@@ -97,7 +98,7 @@
     var nameRows = names.map(function (name, nameIndex) {
       return '<label class="name-row">Jugador ' + (nameIndex + 1) + '<input value="' + html(name) + '" data-name-index="' + nameIndex + '" placeholder="Nombre"/><button type="button" data-remove="' + nameIndex + '" ' + (names.length <= 2 ? 'disabled' : '') + '>Quitar</button></label>';
     }).join('');
-    byId('root').innerHTML = '<main class="app setup"><section class="card hero"><h1>Oca 111</h1><p>Configura participantes, dado y empieza una partida persistente desde cualquier navegador del móvil.</p></section><form class="card" id="setup-form"><h2>Participantes</h2><div id="name-list">' + nameRows + '</div><button type="button" class="secondary" id="add-player">Agregar participante</button><h2>Dado</h2><div class="radio-grid"><label><input type="radio" name="dice-mode" value="virtual" ' + (setupDiceMode === 'virtual' ? 'checked' : '') + '/> Virtual</label><label><input type="radio" name="dice-mode" value="real" ' + (setupDiceMode === 'real' ? 'checked' : '') + '/> Real</label></div><label id="faces-label" ' + (setupDiceMode === 'real' ? 'hidden' : '') + '>Caras del dado<select id="dice-faces"><option value="6">6</option><option value="12">12</option><option value="20">20</option></select></label>' + (error ? '<p class="error">' + html(error) + '</p>' : '') + '<button class="primary">Comenzar partida</button></form></main>';
+    byId('root').innerHTML = '<main class="app setup"><section class="card hero"><h1>Oca 111</h1><p>Configura participantes, dado y empieza una partida persistente desde cualquier navegador del móvil.</p><small class="app-version">Versión: ' + APP_VERSION + '</small></section><form class="card" id="setup-form"><h2>Participantes</h2><div id="name-list">' + nameRows + '</div><button type="button" class="secondary" id="add-player">Agregar participante</button><h2>Dado</h2><div class="radio-grid"><label><input type="radio" name="dice-mode" value="virtual" ' + (setupDiceMode === 'virtual' ? 'checked' : '') + '/> Virtual</label><label><input type="radio" name="dice-mode" value="real" ' + (setupDiceMode === 'real' ? 'checked' : '') + '/> Real</label></div><label id="faces-label" ' + (setupDiceMode === 'real' ? 'hidden' : '') + '>Caras del dado<select id="dice-faces"><option value="6">6</option><option value="12">12</option><option value="20">20</option></select></label>' + (error ? '<p class="error">' + html(error) + '</p>' : '') + '<button class="primary">Comenzar partida</button></form></main>';
     var faces = byId('dice-faces');
     var nameInputs = document.querySelectorAll('[data-name-index]');
     var removeButtons = document.querySelectorAll('[data-remove]');
