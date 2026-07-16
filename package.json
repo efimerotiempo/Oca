@@ -1,1 +1,1 @@
-{"scripts":{"start":"python3 server.py","build":"node --check src/main.js"},"dependencies":{},"devDependencies":{}}
+{"scripts":{"start":"sh start.sh","build":"node --check src/main.js"},"dependencies":{},"devDependencies":{}}
