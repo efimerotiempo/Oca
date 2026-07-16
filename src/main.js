@@ -41,6 +41,10 @@
     var merged = cloneEmptyState();
     if (!saved || typeof saved !== 'object') return merged;
     Object.keys(saved).forEach(function (key) { merged[key] = saved[key]; });
+    merged.players = (merged.players || []).map(function (player) {
+      if (typeof player.drinkCount !== 'number') player.drinkCount = 0;
+      return player;
+    });
     return merged;
   }
 
@@ -113,7 +117,7 @@
     if (cleanNames.length < 2) { error = 'Ingresa al menos dos participantes.'; render(); return; }
     state = cloneEmptyState();
     state.setupDone = true;
-    state.players = cleanNames.map(function (name, playerIndex) { return { id: uid(), name: name, position: 1, color: 'hsl(' + ((playerIndex * 71) % 360) + ' 80% 45%)' }; });
+    state.players = cleanNames.map(function (name, playerIndex) { return { id: uid(), name: name, position: 1, drinkCount: 0, color: 'hsl(' + ((playerIndex * 71) % 360) + ' 80% 45%)' }; });
     state.diceMode = setupDiceMode;
     state.diceFaces = setupDiceFaces;
     state.log = ['Partida iniciada. El orden de turnos sigue el orden de ingreso de nombres.'];
@@ -128,18 +132,32 @@
     var sortedPlayers = state.players.slice().sort(function (a, b) { return b.position - a.position; });
     var effectsMarkup = state.activeEffects.length ? state.activeEffects.map(function (effect) { return '<div class="effect"><strong>' + html(effect.playerName) + '</strong><span>Casilla ' + effect.startedAtCell + ': ' + html(effect.text) + '</span></div>'; }).join('') : '<p>No hay efectos activos.</p>';
     var noticesMarkup = state.expiredNotices.map(function (notice) { return '<p class="notice">' + html(notice) + '</p>'; }).join('');
-    var playersMarkup = sortedPlayers.map(function (player) { return '<div class="player"><span class="dot" style="background:' + player.color + '"></span><strong>' + html(player.name) + '</strong><meter min="1" max="' + TOTAL_CELLS + '" value="' + player.position + '"></meter><span>' + player.position + '</span></div>'; }).join('');
+    var playersMarkup = sortedPlayers.map(function (player) { return '<div class="player"><span class="dot" style="background:' + player.color + '"></span><strong>' + html(player.name) + '</strong><meter min="1" max="' + TOTAL_CELLS + '" value="' + player.position + '"></meter><span>Casilla ' + player.position + '</span><span class="drink-count">Bebió: ' + (player.drinkCount || 0) + '</span></div>'; }).join('');
     var cellsMarkup = '';
     for (var cellIndex = 0; cellIndex < TOTAL_CELLS; cellIndex += 1) {
       var boardCell = cellIndex + 1;
       var occupants = state.players.filter(function (player) { return player.position === boardCell; });
       cellsMarkup += '<div class="cell ' + (occupants.length ? 'occupied' : '') + '" title="' + html(miniGames[cellIndex]) + '"><span>' + boardCell + '</span>' + occupants.map(function (player) { return '<i style="background:' + player.color + '" title="' + html(player.name) + '"></i>'; }).join('') + '</div>';
     }
-    byId('root').innerHTML = '<main class="app"><header class="topbar"><div><h1>Oca 111</h1><p>Turno de <strong>' + html(currentPlayer.name) + '</strong></p></div><button class="danger" id="reset">REINICIAR</button></header><section class="grid"><article class="card turn"><h2>Turno actual</h2><p class="position">Casilla ' + currentPlayer.position + ' / ' + TOTAL_CELLS + '</p><p><strong>Minijuego actual:</strong> ' + html(miniGames[currentPlayer.position - 1]) + '</p>' + (state.diceMode === 'virtual' ? '<p>Dado virtual de ' + state.diceFaces + ' caras.</p>' : '<label>Resultado del dado real<input inputmode="numeric" id="real-roll" value="' + html(state.realRollInput) + '" placeholder="Ej. 5"/></label>') + (error ? '<p class="error">' + html(error) + '</p>' : '') + '<button class="primary roll" id="roll">' + (state.diceMode === 'virtual' ? 'Tirar dado' : 'Registrar tirada') + '</button>' + (state.lastRoll ? '<p>Última tirada: ' + state.lastRoll + '</p>' : '') + '</article><article class="card"><h2>Recordatorios de ronda</h2>' + effectsMarkup + noticesMarkup + '</article></section><section class="card"><h2>Posiciones</h2><div class="players">' + playersMarkup + '</div></section><section class="card board"><h2>Tablero</h2><div class="cells">' + cellsMarkup + '</div></section><section class="card"><h2>Historial</h2>' + state.log.map(function (item) { return '<p class="log">' + html(item) + '</p>'; }).join('') + '</section></main>';
+    byId('root').innerHTML = '<main class="app"><header class="topbar"><div><h1>Oca 111</h1><p class="turn-label">Turno de <strong>' + html(currentPlayer.name) + '</strong></p></div><button class="danger" id="reset">REINICIAR</button></header><section class="grid"><article class="card turn"><h2>Turno actual</h2><p class="position">Casilla ' + currentPlayer.position + ' / ' + TOTAL_CELLS + '</p><p><strong>Minijuego actual:</strong> ' + html(miniGames[currentPlayer.position - 1]) + '</p>' + (state.diceMode === 'virtual' ? '<p>Dado virtual de ' + state.diceFaces + ' caras.</p>' : '<label>Resultado del dado real<input inputmode="numeric" id="real-roll" value="' + html(state.realRollInput) + '" placeholder="Ej. 5"/></label>') + (error ? '<p class="error">' + html(error) + '</p>' : '') + '<button class="drink-button" id="drink">BEBER</button><button class="primary roll" id="roll">' + (state.diceMode === 'virtual' ? 'Tirar dado' : 'Registrar tirada') + '</button>' + (state.lastRoll ? '<p>Última tirada: ' + state.lastRoll + '</p>' : '') + '</article><article class="card side-panel"><h2>Recordatorios de ronda</h2>' + effectsMarkup + noticesMarkup + '<div class="history-panel"><h2>Historial</h2><div class="history-scroll">' + state.log.map(function (item) { return '<p class="log">' + html(item) + '</p>'; }).join('') + '</div></div></article></section><section class="card"><h2>Posiciones y bebidas</h2><div class="players">' + playersMarkup + '</div></section><section class="card board"><h2>Tablero</h2><div class="cells">' + cellsMarkup + '</div></section></main>';
     byId('reset').addEventListener('click', resetGame);
     byId('roll').addEventListener('click', rollDice);
+    byId('drink').addEventListener('click', registerDrink);
     var realRoll = byId('real-roll');
     if (realRoll) realRoll.addEventListener('input', function (event) { state.realRollInput = event.target.value; saveState(); });
+  }
+
+
+  function registerDrink() {
+    var currentPlayer = state.players[state.currentPlayerIndex];
+    state.players = state.players.map(function (player, playerIndex) {
+      if (playerIndex !== state.currentPlayerIndex) return player;
+      player.drinkCount = (player.drinkCount || 0) + 1;
+      return player;
+    });
+    state.log = [currentPlayer.name + ' bebió. Total: ' + (currentPlayer.drinkCount || 0)].concat(state.log).slice(0, 30);
+    saveState();
+    render();
   }
 
   function rollDice() {
@@ -151,7 +169,7 @@
     var completedEffects = state.activeEffects.filter(function (effect) { return effect.expiresAtTurnIndex === state.currentPlayerIndex; });
     var stillActive = state.activeEffects.filter(function (effect) { return effect.expiresAtTurnIndex !== state.currentPlayerIndex; });
     var newEffect = ROUND_EFFECT_CELLS.indexOf(nextPosition) !== -1 ? [{ id: uid(), playerId: player.id, playerName: player.name, text: landedMiniGame, startedAtCell: nextPosition, expiresAtTurnIndex: state.currentPlayerIndex }] : [];
-    state.players = state.players.map(function (candidate, playerIndex) { return playerIndex === state.currentPlayerIndex ? { id: candidate.id, name: candidate.name, position: nextPosition, color: candidate.color } : candidate; });
+    state.players = state.players.map(function (candidate, playerIndex) { return playerIndex === state.currentPlayerIndex ? { id: candidate.id, name: candidate.name, position: nextPosition, drinkCount: candidate.drinkCount || 0, color: candidate.color } : candidate; });
     state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
     state.lastRoll = roll;
     state.realRollInput = '';
