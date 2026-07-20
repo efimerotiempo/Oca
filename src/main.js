@@ -3,20 +3,91 @@
 
   var STORAGE_KEY = 'oca-game-state-v1';
   var TOTAL_CELLS = 111;
-  var ROUND_EFFECT_CELLS = [8, 17, 29, 38, 47, 59, 66, 74, 83, 92, 101, 109];
-  var templates = [
-    'Cuenta una anécdota divertida en menos de un minuto.',
-    'Reta a otro jugador a piedra, papel o tijera: quien pierda retrocede 1 casilla.',
-    'Haz una pregunta de cultura general; si nadie acierta, avanzas 1 casilla.',
-    'Imita a un personaje famoso durante 20 segundos.',
-    'Elige una categoría y di 5 palabras relacionadas sin repetir.',
-    'Canta el estribillo de una canción elegida por el grupo.',
-    'Cuenta hasta 20 alternando con otro jugador; quien se equivoque pierde el próximo avance extra.',
-    'Describe una película sin decir nombres propios; si la adivinan, todos aplauden y sigues.',
-    'Haz una pose de estatua hasta que termine el siguiente turno.',
-    'Inventa una regla graciosa para tu próximo turno.',
-    'Responde una pregunta del grupo sin usar sí ni no.',
-    'Elige a alguien para que lance de nuevo; tú mantienes tu posición.'
+    var providedMiniGames = [
+    'Miraros fijamente  entre todos, el que sonría primero bebe',
+    'Enseña últimos 3 mensajes de la última conversación de whatsapp o bebe',
+    'Llama a la última persona que llamaste y dile que llegas tarde o bebe',
+    'Beben los solteros',
+    'ESCUDO: eres inmune al siguiente castigo.',
+    'Di dónde te masturbaste la última vez o bebe',
+    'Casar matar o follar o bebe',
+    'Todos pico al de tu izquierda o beben',
+    'Di dos personas de los presentes que pegan como pareja o bebe',
+    'Habla solo con vocales durante una ronda entera, y si no lo consigues bebes',
+    'Llama a tu madre y dile que te han multado por exceso de velocidad y que no puedes coger el coche o bebe',
+    'Darle me gusta a una foto de hace mínimo 4 meses de alguien que sigas en instagram que decidan tus compañeros o bebes',
+    'TERREMOTO. Cambio de sitios.',
+    'Cámbiate una prenda con el de tu derecha',
+    'Adivinar la película o bebes',
+    'DOBLE: el siguiente reto vale doble',
+    'Subir una historia que decidan tus compañeros y dejarla las 24h o bebes',
+    'Pon una norma durante toda la ronda',
+    'Todos beben menos tú',
+    'Di un trabalenguas hasta que lo digas bien o bebes',
+    'Tararea una canción hasta que los demás la adivinen o bebes',
+    'Todos decimos un nombre de chico con la letra M y el que se quede sin ideas bebe.',
+    'El último en tocar algo rojo bebe.',
+    'Mándale a alguien un mensaje que contenga 3 palabras que elijan tus compañeros o bebe',
+    'Elige a alguien con quien hacer piedra papel o tijeras y el que pierda bebe',
+    '10 sentadillas o bebes',
+    'CONGELADO: el primero que se mueva antes de que vuelvas a hablar bebe.',
+    'Votación: Quién prefiere arriba y quién prefiere abajo. La minoría bebe.',
+    'Reparte 3, 2 y 1 chupito en orden a los que creas que más han follado en su vida.',
+    'Los demás eligen a quien le tocas el culo con los ojos cerrados. Si no adivinas bebes, y si no lo haces también.',
+    'Elige la casilla en la que caer en un radio de 5 casillas.',
+    'Bebe el último que haya vomitado por borracho.',
+    'ESCUDO: eres inmune al siguiente castigo.',
+    'Todos tiramos los dados. Quien saque 6 bebe.',
+    'Copia al animal que te indique cada uno o bebe.',
+    'Deja que el grupo elija una palabra prohibida. Si la dices antes de tu siguiente turno, bebes.',
+    'Di el abecedario al revés. Si te equivocas, bebes.',
+    'Todos señalan al jugador que creen que cocina peor. El más votado bebe.',
+    'MIMICA. Bebes cada vez que beba la tercera persona hacia tu derecha.',
+    'Elige una categoría (frutas, películas, países...). Cada jugador dice una; quien falle bebe.',
+    'Haz una imitación de un famoso. Si nadie lo adivina, bebes.',
+    'Hazle un cumplido que pienses de verdad a alguien del grupo o bebe.',
+    'No puedes decir "sí" ni "no" hasta tu siguiente turno.',
+    'Di en voz alta las últimas 3 búsquedas que hayas hecho en google o bebes.',
+    'Di una mentira y una verdad sobre ti. Si la aciertan, bebes.',
+    'Todos dicen una marca de algo (Moda, coches, moviles…). El primero que repita bebe.',
+    'Di el nombre de 10 países en menos de 15 segundos o bebe.',
+    'Cada vez que alguien miresul móvil mientras se juega a la Oca Borracha, bebe.',
+    'Di el último capricho caro que te compraste o bebe.',
+    'Todos señaláis a alguien. El que más dedos le señalen bebe.',
+    'Durante esta ronda, tienes que terminar todas las frases diciendo “mi rey”.',
+    'Durante esta ronda, cada vez que alguien diga tu nombre tienes que levantarte/sentarte.',
+    'Todos enseñan la última foto del carrete. El grupo vota la más rara.',
+    'Di el nombre y el primer apellido de alguien de los presentes.',
+    'Habla susurrando hasta tu siguiente turno o bebe.',
+    'Se te atan las manos tras la espalda hasta tu próximo turno.',
+    'Di tres cosas que nunca harías por dinero o bebe.',
+    'CONGELADO: el primero que se mueva antes de que vuelvas a hablar bebe.',
+    'Enseña la foto más antigua que tengas en tu galeria o bebe.',
+    'Todos ponéis una mano en la mesa. El último en quitarla tira el dado y bebe lo que indique.',
+    'Nadie puede cruzar las piernas hasta la siguiente ronda. Quien lo haga bebe.',
+    'Di el nombre de 8 animales en 10 segundos o bebe.',
+    'Todos dicen un objeto que haya en una cocina. El primero que repita bebe.',
+    'Di una palabra en inglés. El siguiente tiene que decir otra. El primero que falle bebe.',
+    'Durante una ronda, el último en decir "salud" cuando alguien beba, bebe.',
+    'Haz un dibujo en el aire y que lo adivinen o bebes.',
+    'CARTEL. Durante una ronda tienes que hablar en tercera persona.',
+    'Todos eligen en secreto piedra, papel o tijera. Quien pierda contra más personas bebe.',
+    'CARTEL. Elige un jugador. Debéis estar cogidos de la mano hasta vuestro siguiente turno o ambos bebéis.',
+    'CARTEL. REVERSA: devuelve el siguiente castigo al jugador que tú elijas.',
+    'Mantén un objeto sobre la cabeza hasta tu siguiente turno, si se te cae bebes.',
+    'Elige una letra al azar con IA. Di 5 palabras que empiecen por ella en 10 segundos o bebe.',
+    'Decid colores, quien repita uno bebe.',
+    'Tienes 3 intentos para hacer un bottleflip, si no lo consigues bebes.',
+    'Los demás eligen 3 palabras que tienes que deletrear. Por cada intento hasta conseguirlo bebes.',
+    'Pon una mano encima del hombro de alguno de los que estén a tu lado. Quien tenga dos manos en sus hombros bebe.',
+    'Di tres cosas azules en menos de 5 segundos o bebes.',
+    'daw',
+    'IMPOSTOR. Hasta que acabe la partida tienes que colar una mentira. Si alguien la detecta, bebes. Al final de la partida cuentas la mentira.',
+    'Repite las dos últimas palabras que diga cualquier jugador durante una ronda.',
+    'Cuenta una manía que tengas o bebes.',
+    'Elige una acción sencilla (rascarse la cabeza, aplaudir, toser...). Cada vez que tú la hagas, todos deben copiarte. El último en hacerlo bebe.',
+    'Si adivinas el número que va a sacar el próximo jugador, eliges en qué casillas ponerle.',
+    'Juega tu siguiente turno junto con otro jugador. Compartís el castigo.'
   ];
   var miniGames = [];
   var emptyState = { setupDone: false, players: [], currentPlayerIndex: 0, diceMode: 'virtual', diceFaces: 6, realRollInput: '', lastRoll: null, log: [], activeEffects: [], expiredNotices: [], gameFinished: false, winnerName: '' };
@@ -25,13 +96,24 @@
   var setupDiceMode = 'virtual';
   var setupDiceFaces = 6;
   var error = '';
-  var APP_VERSION = 'final-ganador-20260716';
+  var APP_VERSION = 'minijuegos-20260717';
 
   for (var index = 0; index < TOTAL_CELLS; index += 1) {
-    var cell = index + 1;
-    if (cell === TOTAL_CELLS) miniGames.push('Meta final: celebra tu llegada y cuenta tu mejor momento de la partida.');
-    else if (ROUND_EFFECT_CELLS.indexOf(cell) !== -1) miniGames.push('Efecto de ronda completa: hasta que vuelva tu turno, debes hablar rimando. Al cumplirse la ronda, este efecto deja de aplicar.');
-    else miniGames.push(templates[index % templates.length]);
+    if (providedMiniGames[index]) miniGames.push(providedMiniGames[index]);
+    else if (index + 1 === TOTAL_CELLS) miniGames.push('Meta final: celebra tu llegada y cuenta tu mejor momento de la partida.');
+    else miniGames.push('Casilla libre: inventad un reto rápido entre todos o bebed una vez.');
+  }
+
+  function isRoundEffect(miniGameText) {
+    var text = miniGameText.toLowerCase();
+    return text.indexOf('durante una ronda') !== -1 ||
+      text.indexOf('durante toda la ronda') !== -1 ||
+      text.indexOf('durante esta ronda') !== -1 ||
+      text.indexOf('hasta tu siguiente turno') !== -1 ||
+      text.indexOf('hasta tu próximo turno') !== -1 ||
+      text.indexOf('hasta vuestro siguiente turno') !== -1 ||
+      text.indexOf('hasta la siguiente ronda') !== -1 ||
+      text.indexOf('antes de tu siguiente turno') !== -1;
   }
 
   function cloneEmptyState() {
@@ -174,7 +256,7 @@
     var landedMiniGame = miniGames[nextPosition - 1];
     var completedEffects = state.activeEffects.filter(function (effect) { return effect.expiresAtTurnIndex === state.currentPlayerIndex; });
     var stillActive = state.activeEffects.filter(function (effect) { return effect.expiresAtTurnIndex !== state.currentPlayerIndex; });
-    var newEffect = ROUND_EFFECT_CELLS.indexOf(nextPosition) !== -1 ? [{ id: uid(), playerId: player.id, playerName: player.name, text: landedMiniGame, startedAtCell: nextPosition, expiresAtTurnIndex: state.currentPlayerIndex }] : [];
+    var newEffect = isRoundEffect(landedMiniGame) ? [{ id: uid(), playerId: player.id, playerName: player.name, text: landedMiniGame, startedAtCell: nextPosition, expiresAtTurnIndex: state.currentPlayerIndex }] : [];
     state.players = state.players.map(function (candidate, playerIndex) { return playerIndex === state.currentPlayerIndex ? { id: candidate.id, name: candidate.name, position: nextPosition, drinkCount: candidate.drinkCount || 0, color: candidate.color } : candidate; });
     if (nextPosition >= TOTAL_CELLS) {
       state.gameFinished = true;
