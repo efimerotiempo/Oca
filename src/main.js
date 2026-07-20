@@ -87,7 +87,27 @@
     'Cuenta una manía que tengas o bebes.',
     'Elige una acción sencilla (rascarse la cabeza, aplaudir, toser...). Cada vez que tú la hagas, todos deben copiarte. El último en hacerlo bebe.',
     'Si adivinas el número que va a sacar el próximo jugador, eliges en qué casillas ponerle.',
-    'Juega tu siguiente turno junto con otro jugador. Compartís el castigo.'
+    'Juega tu siguiente turno junto con otro jugador. Compartís el castigo.',
+    'Cultura general, si no la aciertas bebes.',
+    'Elige con quién hacer un pulso. Quien pierde bebe.',
+    'Verdad o reto?',
+    '“¿Qué probabilidad hay de que…?”. Intenta adivinar, quien quede más lejos bebe.',
+    'A la de tres todos dicen un país. Si coincides con alguien, bebéis ambos.',
+    'Durante una ronda entera, no se pueden usar nombres. Quien lo haga bebe.',
+    'El más probable que desaparezca sin avisar bebe.',
+    'Responde una pregunta con una sola palabra.',
+    'Entre todos elegís un apodo para cada uno. Tienes que adivinar el apodo de cada uno. Si te equivocas bebes.',
+    'Di cuántas flexiones puedes hacer. Si exageras y fallas, bebes.',
+    'Dile a la IA que te haga una pregunta personal y elige quien responda por ti. Si falla bebes.',
+    'Habla susurrando durante una ronda entera.',
+    'Ordenaos por edad sin hablar. Si falláis bebéis todos.',
+    'Con los ojos cerrados, poned un cronómetro de X minutos. Durante ese tiempo tenéis que conseguir aplaudir sin turnos y de uno en uno. Si coincidís bebéis los que coincidís y volvéis a empezar hasta conseguirlo.',
+    'El resto del grupo te hacen una bebida mezclando 3 ingredientes de lo que les dé la gana. Si no lo pruebas vuelves a la casilla 1.',
+    'Cada uno escribe un dato curioso sobre sí mismo. Se mezclan y tienes que adivinar de quién es cada uno. Por cada error es un trago.',
+    'Inventa un nuevo deporte. Si la mayoría votan que sí lo practicarían te salvas.',
+    'El que encuentre una moneda se salva. El resto bebe.',
+    'Comparad el color de vuestra ropa interior. Si alguien coincide beben los dos.',
+    'Debes hablar con la lengua fuera durante una ronda entera.'
   ];
   var miniGames = [];
   var emptyState = { setupDone: false, players: [], currentPlayerIndex: 0, diceMode: 'virtual', diceFaces: 6, realRollInput: '', lastRoll: null, log: [], activeEffects: [], expiredNotices: [], gameFinished: false, winnerName: '' };
@@ -96,7 +116,7 @@
   var setupDiceMode = 'virtual';
   var setupDiceFaces = 6;
   var error = '';
-  var APP_VERSION = 'minijuegos-20260717';
+  var APP_VERSION = 'minijuegos-20260720';
 
   for (var index = 0; index < TOTAL_CELLS; index += 1) {
     if (providedMiniGames[index]) miniGames.push(providedMiniGames[index]);
