@@ -116,13 +116,13 @@
     'Debes hablar con la lengua fuera durante una ronda entera.'
   ];
   var miniGames = [];
-  var emptyState = { setupDone: false, players: [], currentPlayerIndex: 0, diceMode: 'virtual', diceFaces: 6, realRollInput: '', lastRoll: null, turnRolled: false, diceModalOpen: false, log: [], activeEffects: [], expiredNotices: [], roundNotice: '', gameFinished: false, winnerName: '' };
+  var emptyState = { setupDone: false, players: [], currentPlayerIndex: 0, diceMode: 'virtual', diceFaces: 6, realRollInput: '', lastRoll: null, turnRolled: false, diceModalOpen: false, log: [], activeEffects: [], pendingTurnReminders: [], expiredNotices: [], roundNotice: '', turnReminderNotice: '', detailPrompt: null, gameFinished: false, winnerName: '' };
   var state;
   var names = ['', ''];
   var setupDiceMode = 'virtual';
   var setupDiceFaces = 6;
   var error = '';
-  var APP_VERSION = 'flujo-dado-20260721';
+  var APP_VERSION = 'salida-cero-20260721';
 
   for (var index = 0; index < TOTAL_CELLS; index += 1) {
     if (providedMiniGames[index]) miniGames.push(providedMiniGames[index]);
@@ -140,6 +140,29 @@
       text.indexOf('hasta vuestro siguiente turno') !== -1 ||
       text.indexOf('hasta la siguiente ronda') !== -1 ||
       text.indexOf('antes de tu siguiente turno') !== -1;
+  }
+
+
+  function isNextTurnReminder(miniGameText) {
+    return miniGameText === 'ESCUDO: eres inmune al siguiente castigo.' ||
+      miniGameText === 'DOBLE: el siguiente reto vale doble.' ||
+      miniGameText === 'REVERSA: devuelve el siguiente castigo al jugador que tú elijas.' ||
+      miniGameText === 'Juega tu siguiente turno junto con otro jugador. Compartís el castigo.';
+  }
+
+  function getDetailPromptType(miniGameText) {
+    if (miniGameText === 'Pon una norma durante una ronda entera.') return 'norma';
+    if (miniGameText === 'Deja que el grupo elija una palabra prohibida. Si la dices durante una ronda entera, bebes.') return 'palabra prohibida';
+    return '';
+  }
+
+  function showPendingTurnReminder() {
+    var pending = state.pendingTurnReminders || [];
+    var currentReminders = pending.filter(function (reminder) { return reminder.expiresAtTurnIndex === state.currentPlayerIndex; });
+    if (!currentReminders.length || state.turnReminderNotice) return;
+    state.pendingTurnReminders = pending.filter(function (reminder) { return reminder.expiresAtTurnIndex !== state.currentPlayerIndex; });
+    state.turnReminderNotice = currentReminders.map(function (reminder) { return reminder.playerName + ': recuerda que tienes activo "' + reminder.text + '"'; }).join(' ');
+    saveState();
   }
 
   function expireEffectsForCurrentTurn() {
@@ -236,7 +259,7 @@
     if (cleanNames.length < 2) { error = 'Ingresa al menos dos participantes.'; render(); return; }
     state = cloneEmptyState();
     state.setupDone = true;
-    state.players = cleanNames.map(function (name, playerIndex) { var colors = ['#ca8a04', '#a16207', '#854d0e', '#facc15', '#eab308', '#713f12']; return { id: uid(), name: name, position: 1, drinkCount: 0, color: colors[playerIndex % colors.length] }; });
+    state.players = cleanNames.map(function (name, playerIndex) { var colors = ['#ca8a04', '#a16207', '#854d0e', '#facc15', '#eab308', '#713f12']; return { id: uid(), name: name, position: 0, drinkCount: 0, color: colors[playerIndex % colors.length] }; });
     state.diceMode = setupDiceMode;
     state.diceFaces = setupDiceFaces;
     state.log = [];
@@ -246,7 +269,7 @@
   }
 
   function renderGame() {
-    if (!state.gameFinished && !state.turnRolled && !state.diceModalOpen) expireEffectsForCurrentTurn();
+    if (!state.gameFinished && !state.turnRolled && !state.diceModalOpen) { expireEffectsForCurrentTurn(); showPendingTurnReminder(); }
     var currentPlayer = state.players[state.currentPlayerIndex];
     if (!currentPlayer) { state = cloneEmptyState(); saveState(); renderSetup(); return; }
     var sortedPlayers = state.players.slice().sort(function (a, b) { return b.position - a.position; });
@@ -255,16 +278,20 @@
     var drinksSummaryMarkup = state.players.map(function (player) { return '<li><strong>' + html(player.name) + '</strong>: ' + (player.drinkCount || 0) + ' tragos</li>'; }).join('');
     var winnerModal = state.gameFinished ? '<div class="modal-backdrop" role="dialog" aria-modal="true"><div class="winner-modal"><h2>¡Felicidades, ' + html(state.winnerName) + '!</h2><p>Has llegado a la casilla 111 o la has sobrepasado. La partida ha terminado.</p><h3>Resumen de tragos</h3><ul class="drink-summary">' + drinksSummaryMarkup + '</ul><button class="danger modal-reset" id="modal-reset">REINICIAR</button></div></div>' : '';
     var roundNoticeModal = state.roundNotice ? '<button class="round-notice-modal" id="round-notice" aria-label="Cerrar aviso de ronda">' + html(state.roundNotice) + '</button>' : '';
+    var turnReminderModal = state.turnReminderNotice ? '<button class="round-notice-modal" id="turn-reminder" aria-label="Cerrar recordatorio">' + html(state.turnReminderNotice) + '</button>' : '';
+    var detailPromptModal = state.detailPrompt ? '<div class="modal-backdrop dice-backdrop" role="dialog" aria-modal="true"><form class="dice-modal detail-modal" id="detail-form"><label>Escribe la ' + html(state.detailPrompt.type) + '<input id="detail-input" required placeholder="Escribe aquí"/></label><button class="primary">Guardar</button></form></div>' : '';
     var diceModal = state.diceModalOpen ? '<div class="modal-backdrop dice-backdrop" role="dialog" aria-modal="true"><div class="dice-modal"><button class="dice-face" id="dice-face" aria-label="Tirar dado">⚂</button>' + (state.diceMode === 'real' ? '<label>Resultado del dado real<input inputmode="numeric" id="modal-real-roll" placeholder="Ej. 5"/></label>' : '<p>Toca el dado para tirar.</p>') + '</div></div>' : ''; 
     var cellsMarkup = '';
-    for (var cellIndex = 0; cellIndex < TOTAL_CELLS; cellIndex += 1) {
-      var boardCell = cellIndex + 1;
+    for (var cellIndex = 0; cellIndex <= TOTAL_CELLS; cellIndex += 1) {
+      var boardCell = cellIndex;
       var occupants = state.players.filter(function (player) { return player.position === boardCell; });
-      cellsMarkup += '<div class="cell ' + (occupants.length ? 'occupied' : '') + '" title="' + html(miniGames[cellIndex]) + '"><span>' + boardCell + '</span>' + occupants.map(function (player) { return '<b class="occupant">' + html(player.name) + ' · ' + (player.drinkCount || 0) + '</b>'; }).join('') + '</div>';
+      cellsMarkup += '<div class="cell ' + (occupants.length ? 'occupied' : '') + '" title="' + html(boardCell === 0 ? 'Salida' : miniGames[cellIndex - 1]) + '"><span>' + (boardCell === 0 ? '0' : boardCell) + '</span>' + occupants.map(function (player) { return '<b class="occupant">' + html(player.name) + ' · ' + (player.drinkCount || 0) + '</b>'; }).join('') + '</div>';
     }
-    byId('root').innerHTML = '<main class="app"><header class="topbar"><div><h1>Oca 111</h1><p class="turn-label">Turno de <strong>' + html(currentPlayer.name) + '</strong></p></div><button class="danger" id="reset">REINICIAR</button></header><section class="grid"><article class="card side-panel">' + effectsMarkup + noticesMarkup + '</article><article class="card turn"><div class="mini-game-box"><p>' + (state.turnRolled ? html(miniGames[currentPlayer.position - 1]) : 'Pulsa DADO para tirar y descubrir el minijuego de este turno.') + '</p></div>' + (error ? '<p class="error">' + html(error) + '</p>' : '') + '<div class="action-grid"><button class="drink-button square-action" id="drink">BEBER</button><button class="primary roll square-action" id="roll">DADO</button></div>' + (state.turnRolled && state.lastRoll ? '<p>Última tirada: ' + state.lastRoll + '</p>' : '') + '</article></section><section class="card board"><div class="cells">' + cellsMarkup + '</div></section>' + winnerModal + roundNoticeModal + diceModal + '</main>';
+    byId('root').innerHTML = '<main class="app"><header class="topbar"><div><h1>Oca 111</h1><p class="turn-label">Turno de <strong>' + html(currentPlayer.name) + '</strong></p></div><button class="danger" id="reset">REINICIAR</button></header><section class="grid"><article class="card side-panel">' + effectsMarkup + noticesMarkup + '</article><article class="card turn"><div class="mini-game-box"><p>' + (state.turnRolled ? html(currentPlayer.position === 0 ? 'Pulsa DADO para tirar y descubrir el minijuego de este turno.' : miniGames[currentPlayer.position - 1]) : 'Pulsa DADO para tirar y descubrir el minijuego de este turno.') + '</p></div>' + (error ? '<p class="error">' + html(error) + '</p>' : '') + '<div class="action-grid"><button class="drink-button square-action" id="drink">BEBER</button><button class="primary roll square-action" id="roll">DADO</button></div>' + (state.turnRolled && state.lastRoll ? '<p>Última tirada: ' + state.lastRoll + '</p>' : '') + '</article></section><section class="card board"><div class="cells">' + cellsMarkup + '</div></section>' + winnerModal + roundNoticeModal + turnReminderModal + detailPromptModal + diceModal + '</main>';
     byId('reset').addEventListener('click', resetGame);
     if (state.roundNotice) byId('round-notice').addEventListener('click', dismissRoundNotice);
+    if (state.turnReminderNotice) byId('turn-reminder').addEventListener('click', dismissTurnReminder);
+    if (state.detailPrompt) byId('detail-form').addEventListener('submit', saveDetailPrompt);
     if (state.gameFinished) { byId('modal-reset').addEventListener('click', resetGame); return; }
     if (state.diceModalOpen) byId('dice-face').addEventListener('click', rollDice);
     byId('roll').addEventListener('click', openDiceFlow);
@@ -274,6 +301,26 @@
 
   function dismissRoundNotice() {
     state.roundNotice = '';
+    saveState();
+    render();
+  }
+
+  function dismissTurnReminder() {
+    state.turnReminderNotice = '';
+    saveState();
+    render();
+  }
+
+  function saveDetailPrompt(event) {
+    event.preventDefault();
+    var value = byId('detail-input').value.trim();
+    if (!value) return;
+    var prompt = state.detailPrompt;
+    state.activeEffects = state.activeEffects.map(function (effect) {
+      if (effect.id !== prompt.effectId) return effect;
+      return { id: effect.id, playerId: effect.playerId, playerName: effect.playerName, text: effect.text + ' (' + prompt.type + ': ' + value + ')', startedAtCell: effect.startedAtCell, expiresAtTurnIndex: effect.expiresAtTurnIndex };
+    });
+    state.detailPrompt = null;
     saveState();
     render();
   }
@@ -299,7 +346,7 @@
       state.realRollInput = '';
       expireEffectsForCurrentTurn();
     }
-    state.diceModalOpen = !state.roundNotice;
+    state.diceModalOpen = !state.roundNotice && !state.turnReminderNotice;
     saveState();
     render();
   }
@@ -313,7 +360,8 @@
     var nextPosition = Math.min(TOTAL_CELLS, player.position + roll);
     var landedMiniGame = miniGames[nextPosition - 1];
     var stillActive = state.activeEffects.slice();
-    var newEffect = isRoundEffect(landedMiniGame) ? [{ id: uid(), playerId: player.id, playerName: player.name, text: landedMiniGame, startedAtCell: nextPosition, expiresAtTurnIndex: state.currentPlayerIndex }] : [];
+    var effectId = uid();
+    var newEffect = isRoundEffect(landedMiniGame) ? [{ id: effectId, playerId: player.id, playerName: player.name, text: landedMiniGame, startedAtCell: nextPosition, expiresAtTurnIndex: state.currentPlayerIndex }] : [];
     state.players = state.players.map(function (candidate, playerIndex) { return playerIndex === state.currentPlayerIndex ? { id: candidate.id, name: candidate.name, position: nextPosition, drinkCount: candidate.drinkCount || 0, color: candidate.color } : candidate; });
     if (nextPosition >= TOTAL_CELLS) {
       state.gameFinished = true;
@@ -324,6 +372,11 @@
     state.diceModalOpen = false;
     state.realRollInput = '';
     state.activeEffects = stillActive.concat(newEffect);
+    if (isNextTurnReminder(landedMiniGame)) {
+      state.pendingTurnReminders = (state.pendingTurnReminders || []).concat([{ id: uid(), playerId: player.id, playerName: player.name, text: landedMiniGame, expiresAtTurnIndex: state.currentPlayerIndex }]);
+    }
+    var detailType = getDetailPromptType(landedMiniGame);
+    if (detailType && newEffect.length) state.detailPrompt = { effectId: effectId, type: detailType };
     state.expiredNotices = [];
     error = '';
     saveState();
