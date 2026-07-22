@@ -1,0 +1,1 @@
+{"scripts":{"start":"sh start.sh","build":"node --check src/main.js"},"dependencies":{},"devDependencies":{}}
